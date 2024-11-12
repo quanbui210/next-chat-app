@@ -6,11 +6,10 @@ import { Imessage, useMessage } from './message';
 
 export default function InitMessages({ messages }: { messages: Imessage[] }) {
   const initState = useRef(false);
-  const hasMore = messages.length >= 20;
 
   useEffect(() => {
     if (!initState.current) {
-      useMessage.setState({ messages, hasMore });
+      useMessage.setState({ messages });
     }
     initState.current = true;
     // eslint-disable-next-line
