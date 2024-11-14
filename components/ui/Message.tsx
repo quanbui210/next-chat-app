@@ -1,7 +1,7 @@
 'use client';
 import { Imessage, useMessage } from '@/lib/store/message';
 import Image from 'next/image';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { EllipsisVertical } from 'lucide-react';
 
 import {
@@ -13,22 +13,33 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useUser } from '@/lib/store/user';
+import { User } from '@supabase/supabase-js';
+import { createClient } from '@/utils/supabase/client';
 
 interface MessageProps {
   value: Imessage;
 }
 
 export default function Message({ value }: MessageProps) {
-  const user = useUser((state) => state.user);
+  const [user, setUser] = useState<User | undefined>(undefined);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    const fetchSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setUser(data.session?.user); // Update the user state with session data
+    };
+
+    fetchSession();
+  }, []); // Only run once on mount
   return (
     <div className="flex gap-2">
-      <Image
+      <img
         src={value.users?.avatar_url!}
-        width={40}
-        height={40}
-        alt="name"
-        className=" rounded-full ring-2"
-      ></Image>
+        alt={value.users?.display_name!}
+        className=" rounded-full ring-2 w-8 h-8"
+      />
       <div className="flex-1">
         <div className="flex item-center gap-1 justify-between">
           <div className="flex item-center gap-1">
