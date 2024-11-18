@@ -8,7 +8,7 @@ export default function InitUser({ user }: { user: User | undefined | null }) {
 
   useEffect(() => {
     if (!initState.current) {
-      useUser.setState({ user });
+      useUser.setState({ user: user || undefined });
     }
     initState.current = true;
     // eslint-disable-next-line

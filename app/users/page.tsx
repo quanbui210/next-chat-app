@@ -17,22 +17,13 @@ export default function Users() {
   const router = useRouter();
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
-  const [allUsers, setAllUsers] = useState<UserRecord[]>([]); // State to hold all users from DB
-
-  const normalizeUsers = (userA: string, userB: string) => {
-    const users = [userA, userB];
-    return users.sort(); // Sorts the users lexicographically
-  };
+  const [allUsers, setAllUsers] = useState<UserRecord[]>([]);
 
   useEffect(() => {
     const fetchUserAndUsers = async () => {
-      // Get the authenticated user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
 
-      // Fetch all users from the users table
       const { data: usersData, error } = await supabase
         .from('users')
         .select('id, avatar_url, created_at, display_name');
@@ -45,32 +36,7 @@ export default function Users() {
     };
 
     fetchUserAndUsers();
-
-    // Set up a listener for auth state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user ?? null);
-      }
-    );
-
-    // Cleanup on unmount
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
   }, [supabase]);
-  const handleLoginWithGitHub = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: {
-          redirectTo: location.origin + '/users',
-        },
-      });
-      if (error) console.error('Login error:', error.message);
-    } catch (err) {
-      console.error('Unexpected error:', err);
-    }
-  };
 
   const handleChat = async (otherUserId: string) => {
     if (!user) return;
@@ -80,7 +46,7 @@ export default function Users() {
 
     // Check if a chat room already exists between these two users (both (user_a, user_b) and (user_b, user_a) combinations)
     let { data: existingRoom, error } = await supabase
-      .from('chat_rooms')
+      .from('chat_rooms' as 'messages' | 'users')
       .select('id')
       .or(`user_a.eq.${userA},user_b.eq.${userA}`)
       .or(`user_a.eq.${userB},user_b.eq.${userB}`)
@@ -94,8 +60,8 @@ export default function Users() {
     } else {
       // Create a new chat room if one doesn't exist
       const { data: newRoom, error: creationError } = await supabase
-        .from('chat_rooms')
-        .insert([{ user_a: userA, user_b: userB }])
+        .from('chat_rooms' as 'messages' | 'users')
+        .insert([{ user_a: userA, user_b: userB } as any])
         .select('id')
         .single();
 
@@ -112,31 +78,43 @@ export default function Users() {
   };
 
   const handleLogout = async () => {
-    const supabase = createClient();
     await supabase.auth.signOut();
-    router.replace('/users');
+    router.replace('/');
   };
-  return (
-    <div>
-      <Button onClick={user ? handleLogout : handleLoginWithGitHub}>
-        {user ? 'Log out' : 'Login'}
-      </Button>
 
-      <div className="users-list mt-4">
-        <h2>All Users:</h2>
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-bold">Users Directory</h1>
+        <Button 
+          onClick={handleLogout}
+          className="px-6"
+        >
+          Log out
+        </Button>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-semibold mb-4">All Users</h2>
         {allUsers.length > 0 ? (
-          <ul>
-            {allUsers.map((p) => (
-              <li key={p.id}>
-                <p>{p.display_name}</p>
-                {p.id !== user?.id && (
-                  <Button onClick={() => handleChat(p.id)}>Chat</Button>
-                )}
-              </li>
-            ))}
+          <ul className="space-y-4">
+            {allUsers.map((p) => 
+              p.id !== user?.id && (
+                <li key={p.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-md border">
+                  <p className="font-medium text-gray-800">{p.display_name}</p>
+                  <Button 
+                    onClick={() => handleChat(p.id)}
+                    className="ml-4"
+                    variant="outline"
+                  >
+                    Start Chat
+                  </Button>
+                </li>
+              )
+            )}
           </ul>
         ) : (
-          <p>No users found.</p>
+          <p className="text-gray-500 text-center py-4">No users found.</p>
         )}
       </div>
       <InitUser user={user} />

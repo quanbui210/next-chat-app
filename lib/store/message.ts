@@ -25,7 +25,7 @@ interface MessageState {
 	optimisticDeleteMessage: (messageId: string) => void;
 	optimisticUpdateMessage: (message: Imessage) => void;
 	setOptimisticIds: (id: string) => void;
-	setMesssages: (messages: Imessage[]) => void;
+	setMessages: (messages: Imessage[]) => void;
 }
 
 export const useMessage = create<MessageState>()((set) => ({
@@ -34,36 +34,30 @@ export const useMessage = create<MessageState>()((set) => ({
 	messages: [],
 	optimisticIds: [],
 	actionMessage: undefined,
-	setMesssages: (messages) =>
+	setMessages: (messages) =>
 		set((state) => ({
 			messages: [...messages, ...state.messages],
 			page: state.page + 1,
 		})),
-	setOptimisticIds: (id: string) =>
+	setOptimisticIds: (id) =>
 		set((state) => ({ optimisticIds: [...state.optimisticIds, id] })),
-	addMessage: (newMessages) =>
+	addMessage: (newMessage) =>
 		set((state) => ({
-			messages: [...state.messages, newMessages],
+			messages: [...state.messages, newMessage],
 		})),
 	setActionMessage: (message) => set(() => ({ actionMessage: message })),
 	optimisticDeleteMessage: (messageId) =>
-		set((state) => {
-			return {
-				messages: state.messages.filter(
-					(message) => message.id !== messageId
-				),
-			};
-		}),
+		set((state) => ({
+			messages: state.messages.filter(
+				(message) => message.id !== messageId
+			),
+		})),
 	optimisticUpdateMessage: (updateMessage) =>
-		set((state) => {
-			return {
-				messages: state.messages.filter((message) => {
-					if (message.id === updateMessage.id) {
-						(message.text = updateMessage.text),
-							(message.is_edit = updateMessage.is_edit);
-					}
-					return message;
-				}),
-			};
-		}),
+		set((state) => ({
+			messages: state.messages.map((message) => 
+				message.id === updateMessage.id
+					? { ...message, text: updateMessage.text, is_edit: updateMessage.is_edit }
+					: message
+			),
+		})),
 }));

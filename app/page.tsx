@@ -29,17 +29,58 @@ export default function Page() {
     router.push('/users'); // Navigate to the /users page
   };
 
-  if (!user) {
-    return <div>Loading...</div>; // Handle loading state
-  }
+
+  const handleLoginWithGitHub = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: location.origin + '/users',
+        },
+      });
+      if (error) console.error('Login error:', error.message);
+    } catch (err) {
+      console.error('Unexpected error:', err);
+    }
+  };
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.replace('/');
+  };
 
   return (
-    <>
-      <div>
-        {/* Add button click handler to navigate to the users page */}
-        <Button onClick={handleNavigateToUsers}>Users</Button>
+    <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-8">
+            {user ? `Welcome back!` : 'Welcome to Chat App'}
+          </h1>
+          <div className="space-y-4 sm:space-y-0 sm:space-x-4">
+            <Button
+              onClick={user ? handleLogout : handleLoginWithGitHub}
+              className="bg-gray-900 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors"
+            >
+              {user ? 'Log out' : 'Login with GitHub'}
+            </Button>
+            {user && (
+              <Button
+                onClick={handleNavigateToUsers}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors"
+              >
+                View All Users
+              </Button>
+            )}
+          </div>
+          {!user && (
+            <p className="mt-4 text-gray-600">
+              Please login to start chatting with other users
+            </p>
+          )}
+        </div>
       </div>
       <InitUser user={user} />
-    </>
+    </div>
   );
 }

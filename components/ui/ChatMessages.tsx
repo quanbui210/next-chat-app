@@ -10,20 +10,19 @@ export default function ChatMessages({
 }: {
   chatRoomId: string | string[] | undefined;
 }) {
-  const [messages, setMessages] = useState<any[]>([]); // State to store messages
-  const [loading, setLoading] = useState(true); // Loading state
+  const [messages, setMessages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchMessages = async () => {
-      if (!chatRoomId) return; // Early exit if chatRoomId is undefined or falsy
+      if (!chatRoomId) return;
 
       const supabase = createClient();
 
-      // Assuming your column name is 'chat_room_id' in the messages table
       const { data, error } = await supabase
         .from('messages')
         .select('*, users(*)')
-        .eq('chat_room', chatRoomId); // Replace 'chat_room_id' with your actual column name
+        .eq('chat_room', chatRoomId);
 
       if (error) {
         console.error('Error fetching messages:', error.message);
@@ -31,15 +30,20 @@ export default function ChatMessages({
         setMessages(data || []);
       }
 
-      setLoading(false); // Set loading to false once data is fetched
+      setLoading(false);
     };
 
     fetchMessages();
-  }, [chatRoomId]); // Dependency array to refetch on chatRoomId change
+  }, [chatRoomId]);
 
   if (loading) {
     return <div>Loading...</div>;
   }
+
+  if (!chatRoomId || Array.isArray(chatRoomId)) {
+    return null;
+  }
+
   return (
     <>
       <ListMessage chatRoomId={chatRoomId} />
