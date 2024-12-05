@@ -29,11 +29,27 @@ export default function Page() {
     router.push('/users'); // Navigate to the /users page
   };
 
+  console.log(user)
 
   const handleLoginWithGitHub = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
+        options: {
+          redirectTo: location.origin + '/users',
+          
+        },
+      });
+      if (error) console.error('Login error:', error.message);
+    } catch (err) {
+      console.error('Unexpected error:', err);
+    }
+  };
+
+  const handleLoginWithFacebook = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
         options: {
           redirectTo: location.origin + '/users',
         },
@@ -63,6 +79,12 @@ export default function Page() {
               className="bg-gray-900 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors"
             >
               {user ? 'Log out' : 'Login with GitHub'}
+            </Button>
+            <Button
+              onClick={handleLoginWithFacebook}
+              className="bg-gray-900 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors"
+            >
+              {user ? 'Log out' : 'Login with Facebook'}
             </Button>
             {user && (
               <Button

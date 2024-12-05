@@ -80,7 +80,8 @@ export function EditAlert() {
   const handleChange = () => {
     const currentText = messageRef.current?.value;
     const isChanged = currentText !== actionMessage?.text;
-    setDisabled(!isChanged); // Enable button if text is different
+    const isEmpty = currentText === '';
+    setDisabled(!isChanged || isEmpty); // Enable button if text is different
   };
   return (
     <AlertDialog>

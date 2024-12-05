@@ -18,7 +18,7 @@ export default function Users() {
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
   const [allUsers, setAllUsers] = useState<UserRecord[]>([]);
-
+  console.log(user)
   useEffect(() => {
     const fetchUserAndUsers = async () => {
       const { data: { user } } = await supabase.auth.getUser();
